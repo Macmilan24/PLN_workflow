@@ -1,8 +1,101 @@
+# -----------------------------
+# Project-local folders
+# -----------------------------
 /PeTTa/
 /metta_env/
+/vector_DB/
 
+# -----------------------------
+# Python bytecode and caches
+# -----------------------------
+__pycache__/
+*.py[cod]
+*$py.class
 
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/Macmilan24/PLN_workflow.git
-git push -u origin main
+# Type checker / linter caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.hypothesis/
+
+# -----------------------------
+# Build, packaging, and wheels
+# -----------------------------
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+*.egg
+.installed.cfg
+MANIFEST
+pip-wheel-metadata/
+
+# Compiled extensions
+*.so
+
+# -----------------------------
+# Test and coverage artifacts
+# -----------------------------
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+nosetests.xml
+*.cover
+*.py,cover
+
+# -----------------------------
+# Logs and runtime files
+# -----------------------------
+*.log
+logs/
+tmp/
+temp/
+*.pid
+
+# -----------------------------
+# Virtual environments and env files
+# -----------------------------
+.env
+.env.*
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# -----------------------------
+# Notebook and interactive tools
+# -----------------------------
+.ipynb_checkpoints/
+profile_default/
+ipython_config.py
+
+# -----------------------------
+# IDE/editor and OS files
+# -----------------------------
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# -----------------------------
+# Local databases / search indexes
+# -----------------------------
+*.sqlite3
+*.db
+*.faiss
+

@@ -2,7 +2,7 @@
 !(git-import! "https://github.com/trueagi-io/PLN.git")
 !(import! &self (library PLN lib_pln))
 
-!(import! &self kb)
+!(import! &self metta_kbs/galaxy_history)
 
 
 ; !(bind! &kb (new-space))
@@ -18,6 +18,6 @@
 ; !(let $kb (collapse (match &kb $fact $fact))
 ;     (PLN.Query $kb (Implication A C)))
 
-!(PLN.Query (KB) (Implication Start STAR))
+!(PLN.Drive (History_kb) (History_kb) 1)
 
 
