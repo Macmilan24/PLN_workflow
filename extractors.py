@@ -15,7 +15,7 @@ class KnowledgeExtractor:
         if not s:
             return "Unknown"
 
-        # remove quotes/apostrophes and normalize to safe symbol chars
+        # Normalize raw names into deterministic symbols safe for MeTTa atoms.
         s = s.replace('"', "").replace("'", "")
         s = re.sub(r"\s+", "_", s)
         s = re.sub(r"[^A-Za-z0-9_]", "_", s)
@@ -39,6 +39,7 @@ class TopologyExtractor(KnowledgeExtractor):
     def extract(self) -> List[str]:
         sentences = []
 
+        # Pull structural edges only, then canonicalize node names before atom generation.
         query = """
                 MATCH (parent)-[r]->(child)
                 WHERE type(r) in ['HAS_WORKFLOW', 'HAS_STEP', 'STEP_USES_TOOL']
@@ -56,6 +57,7 @@ class TopologyExtractor(KnowledgeExtractor):
             parent = self._clean_symbol(row["parent_name"])
             child = self._clean_symbol(row["child_name"])
 
+            # Topology atoms are treated as factual structure, so stv is fixed to 1.0.
             stmt = f"   (Sentence ((Inheritance {parent} {child}) (stv 1.00 1.00)) (TEv{ev_count}))"
             sentences.append(stmt)
             ev_count += 1
@@ -72,6 +74,9 @@ class HistoryExtractor(KnowledgeExtractor):
     def extract(self) -> List[str]:
         sentences = []
 
+        # Two-step query:
+        # 1) count transitions tool_a -> tool_b
+        # 2) count all outgoing transitions from tool_a to compute conditional strength
         query = """
                 MATCH (t1:Tool)<-[:STEP_USES_TOOL]-(s1:Step)-[:NEXT_STEP|STEP_FEEDS_INTO]->(s2:Step)-[:STEP_USES_TOOL]->(t2:Tool)
                 WITH t1.name AS tool_a, t2.name AS tool_b, count(*) AS transition_count
@@ -93,6 +98,7 @@ class HistoryExtractor(KnowledgeExtractor):
             n_ab = row["transition_count"]
             n_a = row["total_outgoing"]
 
+            # strength approximates P(tool_b | tool_a), confidence uses k-smoothing.
             strength = n_ab / n_a if n_a > 0 else 0.0
             confidence = n_ab / (n_ab + self.k)
             stmt = f"   (Sentence ((Implication {tool_a} {tool_b}) (stv {strength:.3f} {confidence:.3f})) (HEv{ev_count}))"

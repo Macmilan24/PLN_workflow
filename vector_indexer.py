@@ -13,6 +13,7 @@ class VectorIndexer:
         self.db = db
         print("Loading Sentence Transformer ...")
         self.model = SentenceTransformer("all-MiniLM-L6-v2")
+        # all-MiniLM-L6-v2 returns 384-dimensional embeddings.
         self.embeding_dim = 384
 
         self.rich_documents = []
@@ -26,7 +27,7 @@ class VectorIndexer:
         if not s:
             return "Unknown"
 
-        # remove quotes/apostrophes and normalize to safe symbol chars
+        # Normalize free-text names into stable MeTTa-safe symbol tokens.
         s = s.replace('"', "").replace("'", "")
         s = re.sub(r"\s+", "_", s)
         s = re.sub(r"[^A-Za-z0-9_]", "_", s)
@@ -63,6 +64,7 @@ class VectorIndexer:
             raw_name = row["node_name"]
             dec = row["description"]
 
+            # Build one rich text per node so embedding captures structure and semantics.
             context_text = [f"Type: {node_type}", f"Name: {raw_name}"]
 
             Inputs = [ip for ip in row["inputs"] if ip]
@@ -78,6 +80,7 @@ class VectorIndexer:
             rich_text = " | ".join(context_text)
 
             self.rich_documents.append(rich_text)
+            # Keep a parallel FAISS-id -> symbol list for later retrieval.
             self.node_symbols.append(self._clean_symbol(raw_name))
 
         print(f"Extracted {len(self.rich_documents)} for the Latent Space")
@@ -85,13 +88,16 @@ class VectorIndexer:
     def build_and_save_index(self):
         print("Generating Embedding ...")
 
+        # Encode all documents in one batch, then cast for FAISS compatibility.
         embeddings = self.model.encode(self.rich_documents, show_progress_bar=True)
         embeddings = np.array(embeddings).astype("float32")
 
         print("Building FAISS Index ...")
 
+        # HNSW gives fast approximate nearest-neighbor search at scale.
         index = faiss.IndexHNSWFlat(self.embeding_dim, 32)
 
+        # L2-normalized vectors make inner-product/L2 comparisons behave like cosine similarity.
         faiss.normalize_L2(embeddings)
         index.add(embeddings)
 
@@ -101,6 +107,7 @@ class VectorIndexer:
         faiss.write_index(index, index_path)
 
         mapping_path = os.path.join(Config.VECTOR_OUTPUT_DIR, "faiss_mapping.json")
+        # JSON keys become strings on write; loader in perception_engine handles that.
         mapping_dict = {i: symbol for i, symbol in enumerate(self.node_symbols)}
 
         with open(mapping_path, "w") as f:

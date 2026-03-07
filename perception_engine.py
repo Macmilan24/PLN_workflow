@@ -22,24 +22,29 @@ class PerceptionEngine:
         self.temp = temprature
 
     def calculate_stv(self, distance: np.array):
+        # For normalized vectors, squared L2 distance maps monotonically to cosine similarity.
         cosine_sim = 1.0 - (distance / 2.0)
         cosine_sim = np.clip(cosine_sim, 0.0, 1.0)
 
+        # Confidence curve: low around weak matches, quickly rises for strong semantic matches.
         midpoint = 0.55
         steepness = 12.0
 
         confidences = 1.0 / (1.0 + np.exp(-steepness * (cosine_sim - midpoint)))
 
+        # Stable softmax (shift-by-max) avoids overflow for large exponents.
         shifted_sim = cosine_sim - np.max(cosine_sim)
         exp_sim = np.exp(shifted_sim / self.temp)
         probs = exp_sim / np.sum(exp_sim)
 
+        # Normalize so best hit has strength 1.0 and others are relative to it.
         strengths = probs / np.max(probs)
 
         return strengths, confidences
 
     def perceive(self, user_query: str):
 
+        # Encode and normalize query using the same embedding setup as indexing time.
         query_vector = self.model.encode([user_query])
         query_vector = np.array(query_vector).astype("float32")
 
@@ -55,12 +60,14 @@ class PerceptionEngine:
         sentences = []
 
         for i in range(self.top_k):
+            # FAISS returns numeric ids; mapping file stores them as string keys in JSON.
             faiss_id = str(index_list[i])
             node_name = self.mapping.get(faiss_id, "UNKNOWN_NODE")
 
             s = strengths[i]
             c = confidence[i]
 
+            # Convert retrieval output into MeTTa sentences with STV evidence metadata.
             stmt = f"(Sentence ((Inheritance {node_name} UserIntent) (stv {s:.3f} {c:.3f})) (UserEv{i + 1}))"
             sentences.append(stmt)
 

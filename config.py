@@ -8,8 +8,8 @@ class Config:
 
     CONFIDENCE_K = 5.0
 
-    TOPOLOGY_LIMIT = int(os.getenv("TOPOLOGY_LIMIT", "100"))
-    HISTORY_LIMIT = int(os.getenv("HISTORY_LIMIT", "100"))
+    TOPOLOGY_LIMIT = int(os.getenv("TOPOLOGY_LIMIT", "100000"))
+    HISTORY_LIMIT = int(os.getenv("HISTORY_LIMIT", "100000"))
 
     OUTPUT_DIR = "metta_kbs"
     VECTOR_OUTPUT_DIR = "vector_DB"
