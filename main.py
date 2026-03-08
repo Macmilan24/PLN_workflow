@@ -40,12 +40,12 @@ def main():
         history_sentence = history_extractor.extract()
         write_kb(Config.HISTORY_FILE, "History_kb", history_sentence)
 
-        # # Phase 3: semantic latent-space index for intent-to-node retrieval.
-        # print("Starting the Latent space embedding ...")
+        # Phase 3: semantic latent-space index for intent-to-node retrieval.
+        print("Starting the Latent space embedding ...")
 
-        # indexer = VectorIndexer(db)
-        # indexer.extract_node()
-        # indexer.build_and_save_index()
+        indexer = VectorIndexer(db)
+        indexer.extract_node()
+        indexer.build_and_save_index()
 
     finally:
         # Always close the driver even if extraction/indexing fails midway.

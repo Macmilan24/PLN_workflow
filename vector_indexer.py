@@ -80,7 +80,6 @@ class VectorIndexer:
             rich_text = " | ".join(context_text)
 
             self.rich_documents.append(rich_text)
-            # Keep a parallel FAISS-id -> symbol list for later retrieval.
             self.node_symbols.append(self._clean_symbol(raw_name))
 
         print(f"Extracted {len(self.rich_documents)} for the Latent Space")
