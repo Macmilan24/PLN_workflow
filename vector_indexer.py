@@ -71,9 +71,9 @@ class VectorIndexer:
             Outputs = [op for op in row["outputs"] if op]
 
             if Inputs:
-                context_text.append(f"Inputs: {", ".join(Inputs)}")
+                context_text.append(f"Inputs: {', '.join(Inputs)}")
             if Outputs:
-                context_text.append(f"Outputs: {", ".join(Outputs)}")
+                context_text.append(f"Outputs: {', '.join(Outputs)}")
             if dec:
                 context_text.append(f"Description: {dec}")
 
