@@ -24,23 +24,44 @@ class DownwardReasoner:
         print("Initializing MeTTa and loading PLN library...")
         self.metta.load_metta_file(pln_file_path)
 
+    def _clean_symbol(self, val: str) -> str:
+        if not val:
+            return "Unknown"
+
+        s = str(val).strip()
+        if not s:
+            return "Unknown"
+
+        s = s.replace('"', "").replace("'", "")
+        s = re.sub(r"\s+", "_", s)
+        s = re.sub(r"[^A-Za-z0-9_]", "_", s)
+        s = re.sub(r"_+", "_", s).strip("_")
+
+        if not s:
+            return "Unknown"
+        if s[0].isdigit():
+            s = f"S_{s}"
+        return s
+
     def _load_valid_tools_from_db(self):
         # Initialize your specific connector using your config file
         db = Neo4jConnector(
             uri=Config.NEO4J_URI, user=Config.NEO4J_USER, password=Config.NEO4J_PASS
         )
 
-        query = "MATCH (t:Tool) RETURN t.name AS tool_name"
-
+        query = "MATCH (t:Tool) RETURN t.name AS raw_name"
         results = db.execute_read_query(query)
 
-        tool_set = {
-            record["tool_name"] for record in results if record.get("tool_name")
-        }
+        tools_map = {}
+        for record in results:
+            raw_name = record.get("raw_name")
+            if raw_name:
+                cleaned_name = self._clean_symbol(raw_name)
+                tools_map[cleaned_name] = raw_name
 
         db.close()
 
-        return tool_set
+        return tools_map
 
     def generate_master_list(self, bubble_file_path, max_steps=50):
         print(f"Loading Context Bubble from {bubble_file_path}...")
